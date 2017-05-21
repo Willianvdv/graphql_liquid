@@ -32,7 +32,6 @@ RSpec.describe GraphqlLiquid do
       fragments = graphql_liquid.fragments
 
       user_fragment = fragments[0]
-      root_query = "{ user(username: \"siebejan\") { ...fragment_user } } #{user_fragment}"
 
       response = HTTParty.post(
         'https://hackerone.com/graphql', query:  { query: root_query }
@@ -44,8 +43,11 @@ RSpec.describe GraphqlLiquid do
     end
 
     it 'hackerone user example' do
-      template = 'Hello {{ user.name }}'
-      expect(magic(template, nil)).to eq 'Hello Siebe Jan Stoker'
+      liquid_template = 'Hello {{ user.name }}'
+      root_query = "{ user(username: \"siebejan\") { ...fragment_user } } #{user_fragment}"
+      # ^^^ This isn't the right root query :)
+
+      expect(magic(liquid_template, root_query)).to eq 'Hello Siebe Jan Stoker'
     end
   end
 end
