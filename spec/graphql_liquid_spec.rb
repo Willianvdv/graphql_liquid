@@ -27,24 +27,25 @@ RSpec.describe GraphqlLiquid do
   end
 
   describe 'hackery' do
-    it 'hackerone user example' do
-      template = 'Hello {{ user.name }}'
+    def magic(template, root_query)
       graphql_liquid = GraphqlLiquid::Parser.new template
       fragments = graphql_liquid.fragments
 
       user_fragment = fragments[0]
-      query = "{ user(username: \"siebejan\") { ...fragment_user } } #{user_fragment}"
+      root_query = "{ user(username: \"siebejan\") { ...fragment_user } } #{user_fragment}"
 
       response = HTTParty.post(
-        'https://hackerone.com/graphql',
-        query:  { query: query }
+        'https://hackerone.com/graphql', query:  { query: root_query }
       ).response.body
 
       data = JSON.parse(response)['data']
 
-      rendered_template = graphql_liquid.liquid_template.render(data)
+      graphql_liquid.liquid_template.render(data)
+    end
 
-      expect(rendered_template).to eq 'Hello Siebe Jan Stoker'
+    it 'hackerone user example' do
+      template = 'Hello {{ user.name }}'
+      expect(magic(template, nil)).to eq 'Hello Siebe Jan Stoker'
     end
   end
 end
