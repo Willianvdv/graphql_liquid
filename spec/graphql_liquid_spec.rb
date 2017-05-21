@@ -46,7 +46,7 @@ RSpec.describe GraphqlLiquid do
       liquid_template = 'Hello {{ user.name }}'
       username = 'siebejan'
       root_query = lambda do |fragments|
-        "{ user(username: \"#{username}\") { ...fragment_user } } #{fragments.values.join(' ')}"
+        "{ user(username: \"#{username}\") { ...fragment_#{fragments.keys.join(' ...fragment_')} } } #{fragments.values.join(' ')}"
       end
 
       expect(magic(liquid_template, root_query)).to eq 'Hello Siebe Jan Stoker'
