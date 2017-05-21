@@ -28,7 +28,7 @@ RSpec.describe GraphqlLiquid do
 
   describe 'hackery' do
     it 'hackerone user example' do
-      template = 'Hello {{ user.username }}'
+      template = 'Hello {{ user.name }}'
       graphql_liquid = GraphqlLiquid::Parser.new template
       fragments = graphql_liquid.fragments
 
@@ -44,7 +44,7 @@ RSpec.describe GraphqlLiquid do
 
       rendered_template = graphql_liquid.liquid_template.render(data)
 
-      expect(rendered_template).to eq 'Hello siebejan'
+      expect(rendered_template).to eq 'Hello Siebe Jan Stoker'
     end
   end
 end
