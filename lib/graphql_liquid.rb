@@ -1,15 +1,15 @@
 require 'graphql_liquid/version'
 require 'liquid'
+require 'httparty'
 
 module GraphqlLiquid
   class Parser
     def initialize(template)
       @template = template
+      @liquid_template = Liquid::Template.parse(template)
     end
 
     def fragments
-      liquid_template = Liquid::Template.parse(template)
-
       tags = []
 
       liquid_template.root.nodelist.map do |node|
@@ -40,13 +40,13 @@ module GraphqlLiquid
       end
 
       fragments.map do |k, v|
-        "fragment on #{k.capitalize} { #{v.map(&:to_graphql).join(' ')} }"
+        "fragment fragment_#{k} on #{k.capitalize} { #{v.map(&:to_graphql).join(' ')} }"
       end
     end
 
-    private
+    attr_reader :template, :liquid_template
 
-    attr_reader :template
+    private
 
     def merge_existing_nodes_with_new_nodes(existing_nodes, new_nodes)
       if (existing_node_with_the_same_name = existing_nodes.find { |nodes| nodes.attribute_name == new_nodes.attribute_name })
