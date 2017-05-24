@@ -27,31 +27,43 @@ RSpec.describe GraphqlLiquid do
   end
 
   describe 'hackery' do
-    def magic(template, root_query)
+    class GraphQLQueryExecutorViaHttp
+      def execute(query)
+        response = HTTParty.post(
+          'https://hackerone.com/graphql', query:  { query: query }
+        ).response.body
+
+        data = JSON.parse(response)['data']
+      end
+    end
+
+    def magic(template, root_query, executor)
       graphql_liquid = GraphqlLiquid::Parser.new template
       fragments = graphql_liquid.fragments
-
       query = root_query.call fragments
-
-      response = HTTParty.post(
-        'https://hackerone.com/graphql', query:  { query: query }
-      ).response.body
-
-      data = JSON.parse(response)['data']
-
-      # TODO: Do something with the errors!
-
+      data = executor.execute query
       graphql_liquid.liquid_template.render(data)
     end
 
     it 'hackerone user example' do
       root_query = lambda do |fragments|
-        "query { user(username: \"siebejan\") { #{fragments[:user] } } }"
+        %{
+          query {
+            user(username: \"siebejan\") { #{fragments[:user]} }
+            team(handle: \"security\") { #{fragments[:team]} }
+          }
+        }
       end
 
+      executor = GraphQLQueryExecutorViaHttp.new
+      # ^ the idea is that you can swap this with a local executor
+
       expect(
-        magic('Hello {{ user.name }}', root_query)
-      ).to eq 'Hello Siebe Jan Stoker'
+        magic \
+          'Hello {{ user.name }} have you reported anything to {{ team.name }} today?',
+          root_query,
+          executor
+      ).to eq 'Hello Siebe Jan Stoker have you reported anything to HackerOne today?'
     end
   end
 end
