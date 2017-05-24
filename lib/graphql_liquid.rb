@@ -40,7 +40,7 @@ module GraphqlLiquid
       end
 
       fragments.map do |k, v|
-        "fragment fragment_#{k} on #{k.capitalize} { #{v.map(&:to_graphql).join(' ')} }"
+        "... on #{k.capitalize} { #{v.map(&:to_graphql).join(' ')} }"
       end
     end
 

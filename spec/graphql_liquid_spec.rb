@@ -20,9 +20,9 @@ RSpec.describe GraphqlLiquid do
 
   it 'returns the graphql fragments extracted from a liquid template' do
     expect(GraphqlLiquid::Parser.new(template).fragments).to eq [
-      'fragment fragment_user on User { name address { city country { iso } } }',
-      'fragment fragment_a on A { b { c { d { e { f { g } } } } } }',
-      'fragment fragment_product on Product { name price description }'
+      '... on User { name address { city country { iso } } }',
+      '... on A { b { c { d { e { f { g } } } } } }',
+      '... on Product { name price description }'
     ]
   end
 
@@ -46,7 +46,7 @@ RSpec.describe GraphqlLiquid do
       liquid_template = 'Hello {{ user.name }}'
       username = 'siebejan'
       root_query = lambda do |fragments|
-        "{ user(username: \"#{username}\") { ...fragment_#{fragments.keys.join(' ...fragment_')} } } #{fragments.values.join(' ')}"
+        "{ user(username: \"#{username}\") { #{fragments.values.join(' ') } } }"
       end
 
       expect(magic(liquid_template, root_query)).to eq 'Hello Siebe Jan Stoker'
