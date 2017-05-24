@@ -40,8 +40,8 @@ module GraphqlLiquid
       end
 
       fragments.map do |k, v|
-        "... on #{k.capitalize} { #{v.map(&:to_graphql).join(' ')} }"
-      end
+        [k.to_sym, "... on #{k.capitalize} { #{v.map(&:to_graphql).join(' ')} }"]
+      end.to_h
     end
 
     attr_reader :template, :liquid_template

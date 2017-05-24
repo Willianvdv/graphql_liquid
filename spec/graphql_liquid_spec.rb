@@ -19,11 +19,11 @@ RSpec.describe GraphqlLiquid do
   end
 
   it 'returns the graphql fragments extracted from a liquid template' do
-    expect(GraphqlLiquid::Parser.new(template).fragments).to eq [
-      '... on User { name address { city country { iso } } }',
-      '... on A { b { c { d { e { f { g } } } } } }',
-      '... on Product { name price description }'
-    ]
+    expect(GraphqlLiquid::Parser.new(template).fragments).to eq({
+      user: '... on User { name address { city country { iso } } }',
+      a: '... on A { b { c { d { e { f { g } } } } } }',
+      product: '... on Product { name price description }'
+    })
   end
 
   describe 'hackery' do
@@ -31,25 +31,27 @@ RSpec.describe GraphqlLiquid do
       graphql_liquid = GraphqlLiquid::Parser.new template
       fragments = graphql_liquid.fragments
 
-      user_fragment = fragments[0]
-      query = root_query.call({ user: user_fragment })
+      query = root_query.call fragments
+
       response = HTTParty.post(
         'https://hackerone.com/graphql', query:  { query: query }
       ).response.body
 
       data = JSON.parse(response)['data']
 
+      # TODO: Do something with the errors!
+
       graphql_liquid.liquid_template.render(data)
     end
 
     it 'hackerone user example' do
-      liquid_template = 'Hello {{ user.name }}'
-      username = 'siebejan'
       root_query = lambda do |fragments|
-        "{ user(username: \"#{username}\") { #{fragments.values.join(' ') } } }"
+        "query { user(username: \"siebejan\") { #{fragments[:user] } } }"
       end
 
-      expect(magic(liquid_template, root_query)).to eq 'Hello Siebe Jan Stoker'
+      expect(
+        magic('Hello {{ user.name }}', root_query)
+      ).to eq 'Hello Siebe Jan Stoker'
     end
   end
 end
