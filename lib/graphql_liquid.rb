@@ -3,6 +3,25 @@ require 'liquid'
 require 'httparty'
 
 module GraphqlLiquid
+  class Renderer
+    def initialize(template, root_query, executor)
+      @template = template
+      @root_query = root_query
+      @executor = executor
+      @parsed = Parser.new template
+    end
+
+    def render
+      query = root_query.call parsed.fragments
+      template_data = executor.execute query
+      parsed.liquid_template.render template_data
+    end
+
+    private
+
+    attr_reader :parsed, :template, :root_query, :executor
+  end
+
   class Parser
     def initialize(template)
       @template = template
